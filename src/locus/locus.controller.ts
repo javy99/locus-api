@@ -1,6 +1,6 @@
 import { Controller, Get, Query, ValidationPipe } from '@nestjs/common';
 import { LocusService } from './locus.service';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GetLocusDto, SideLoadingOption } from './dto/getLocus.dto';
 import { Locus } from './entities/locus.entity';
 
@@ -64,6 +64,7 @@ export class LocusController {
     enum: ['ASC', 'DESC'],
     description: 'Sorting order (ASC or DESC)',
   })
+  @ApiBody({ type: GetLocusDto, description: 'Filter options' })
   async getLocus(
     @Query(new ValidationPipe({ transform: true })) query: GetLocusDto,
   ): Promise<Locus[]> {
