@@ -1,49 +1,65 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LocusMember } from './entities/locusMember.entity';
 import { Repository } from 'typeorm';
 import { Locus } from './entities/locus.entity';
-
-interface LocusFilters {
-  id?: number;
-  assemblyId?: number;
-  regionId?: number;
-}
+import { GetLocusDto, SideLoadingOption } from './dto/getLocus.dto';
 
 @Injectable()
 export class LocusService {
   constructor(
     @InjectRepository(Locus)
     private locusRepository: Repository<Locus>,
-    @InjectRepository(LocusMember)
-    private locusMemberRepository: Repository<LocusMember>,
   ) {}
 
-  async getLocus(
-    filters: LocusFilters,
-    sideloading: boolean,
-    page: number,
-    limit: number,
-  ) {
-    const query = this.locusRepository.createQueryBuilder('locus');
+  async getLocus(dto: GetLocusDto): Promise<Locus[]> {
+    const {
+      id,
+      assemblyId,
+      regionId,
+      membershipStatus,
+      sideloading,
+      page = 1,
+      rows = 1000,
+      sort,
+      order = 'ASC',
+    } = dto;
 
-    // Apply filters
-    if (filters.id) query.andWhere('locus.id = :id', { id: filters.id });
-    if (filters.assemblyId)
-      query.andWhere('locus.assemblyId = :assemblyId', {
-        assemblyId: filters.assemblyId,
-      });
-    if (filters.regionId)
-      query.andWhere('locusMembers.regionId = :regionId', {
-        regionId: filters.regionId,
-      });
+    const skip = (page - 1) * rows;
 
-    if (sideloading) {
-      query.leftJoinAndSelect('locus.locusMembers', 'locusMembers');
+    const queryBuilder = this.locusRepository.createQueryBuilder('rl');
+
+    if (id) {
+      queryBuilder.andWhere('rl.id = :id', { id });
     }
 
-    query.take(limit).skip((page - 1) * limit);
+    if (assemblyId) {
+      queryBuilder.andWhere('rl.assemblyId = :assemblyId', { assemblyId });
+    }
 
-    return query.getMany();
+    // Region ID and membership status needs to be joined with rnc_locus_members
+    if (regionId || membershipStatus) {
+      queryBuilder.leftJoinAndSelect('rl.locusMembers', 'rlm');
+      if (regionId) {
+        queryBuilder.andWhere('rlm.regionId = :regionId', { regionId });
+      }
+
+      if (membershipStatus) {
+        queryBuilder.andWhere('rlm.membershipStatus = :membershipStatus', {
+          membershipStatus,
+        });
+      }
+    }
+
+    if (sort) {
+      queryBuilder.orderBy(`rl.${sort}`, order);
+    }
+    queryBuilder.skip(skip);
+    queryBuilder.take(rows);
+    if (sideloading === SideLoadingOption.LOCUS_MEMBERS) {
+      queryBuilder.leftJoinAndSelect('rl.locusMembers', 'locusMembers');
+    }
+
+    const locus = await queryBuilder.getMany();
+    return locus;
   }
 }
