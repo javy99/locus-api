@@ -15,7 +15,7 @@ import { AppService } from './app.service';
       username: 'reader',
       password: 'NWDMCE5xdipIjRrp',
       database: 'pfmegrnargs',
-      autoLoadEntities: true,
+      entities: ['src/**/*.entity{.ts,.js}'],
       synchronize: false,
     }),
     LocusModule,

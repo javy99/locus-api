@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Locus } from './locus.entity';
-import { LocusMember } from './locusMember.entity';
+import { LocusMember } from './entities/locusMember.entity';
 import { Repository } from 'typeorm';
+import { Locus } from './entities/locus.entity';
 
 interface LocusFilters {
   id?: number;

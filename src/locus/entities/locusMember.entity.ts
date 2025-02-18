@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Locus } from './locus.entity';
 
 @Entity({ name: 'rnc_locus_members' })
@@ -16,5 +22,6 @@ export class LocusMember {
   membershipStatus: string;
 
   @ManyToOne(() => Locus, (locus) => locus.locusMembers)
+  @JoinColumn({ name: 'locusId' })
   locus!: Locus;
 }
