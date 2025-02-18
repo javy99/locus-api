@@ -7,16 +7,20 @@ import { AppService } from './app.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'hh-pgsql-public.ebi.ac.uk',
-      port: 5432,
-      username: 'reader',
-      password: 'NWDMCE5xdipIjRrp',
-      database: 'pfmegrnargs',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT || '5432'),
+      database: process.env.DB_NAME,
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
       entities: ['src/**/*.entity{.ts,.js}'],
       synchronize: false,
+      autoLoadEntities: true,
     }),
     LocusModule,
   ],
