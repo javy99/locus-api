@@ -1,27 +1,27 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Locus } from './locus.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({ name: 'rnc_locus_members' })
 export class LocusMember {
-  @PrimaryGeneratedColumn()
+  @ApiProperty()
+  @PrimaryColumn({ name: 'locus_member_id' })
   locusMemberId: number;
 
-  @Column()
+  @ApiProperty()
+  @Column({ name: 'region_id' })
   regionId: number;
 
-  @Column()
+  @PrimaryColumn({ name: 'locus_id' })
   locusId: number;
 
-  @Column()
+  @ApiProperty()
+  @Column({ name: 'membership_status' })
   membershipStatus: string;
 
-  @ManyToOne(() => Locus, (locus) => locus.locusMembers)
-  @JoinColumn({ name: 'locusId' })
+  @ManyToOne(() => Locus, (locus) => locus.locusMembers, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'locus_id' })
   locus!: Locus;
 }

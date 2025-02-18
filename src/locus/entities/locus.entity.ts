@@ -1,33 +1,43 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { LocusMember } from './locusMember.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({ name: 'rnc_locus' })
 export class Locus {
+  @ApiProperty()
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @ApiProperty()
+  @Column({ name: 'assembly_id' })
   assemblyId: string;
 
-  @Column()
+  @ApiProperty()
+  @Column({ name: 'locus_name' })
   locusName: string;
 
-  @Column()
+  @ApiProperty()
+  @Column({ name: 'public_locus_name' })
   publicLocusName: string;
 
+  @ApiProperty()
   @Column()
   chromosome: string;
 
+  @ApiProperty()
   @Column()
   strand: string;
 
-  @Column()
+  @ApiProperty()
+  @Column({ name: 'locus_start' })
   locusStart: number;
 
-  @Column()
+  @ApiProperty()
+  @Column({ name: 'locus_stop' })
   locusStop: number;
 
-  @Column()
+  @ApiProperty()
+  @Column({ name: 'member_count' })
   memberCount: number;
 
   @OneToMany(() => LocusMember, (locusMember) => locusMember.locus)
