@@ -109,9 +109,6 @@ export class LocusService {
     }
 
     const locus = await queryBuilder.getMany();
-    // console.log('Generated SQL:', queryBuilder.getSql());
-    // console.log('Parameters:', queryBuilder.getParameters());
-    // console.log('Retrieved Loci:', locus);
     return locus;
   }
 }

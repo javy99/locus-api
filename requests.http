@@ -1,4 +1,5 @@
 ### Sign in as an existing user (admin)
+# @name loginAdmin
 POST http://localhost:3000/auth/login
 Content-Type: application/json
 
@@ -8,6 +9,7 @@ Content-Type: application/json
 }
 
 ### Sign in as an existing user (normal)
+# @name loginNormal
 POST http://localhost:3000/auth/login
 Content-Type: application/json
 
@@ -17,6 +19,7 @@ Content-Type: application/json
 }
 
 ### Sign in as an existing user (limited)
+# @name loginLimited
 POST http://localhost:3000/auth/login
 Content-Type: application/json
 
@@ -27,23 +30,20 @@ Content-Type: application/json
 
 ### Get /locus as Admin (all data)
 GET http://localhost:3000/locus
-Authorization: Bearer {{response.body.access_token}}
+Authorization: Bearer {{loginAdmin.response.body.access_token}}
 
 ### Get /locus as Admin (with sideloading)
 GET http://localhost:3000/locus?sideloading=locusMembers
-Authorization: Bearer {{response.body.access_token}}
+Authorization: Bearer {{loginAdmin.response.body.access_token}}
 
 ### Get /locus as Normal User (limited columns)
 GET http://localhost:3000/locus
-Authorization: Bearer {{response.body.access_token}}
-
-### Get /locus as Normal User (with sideloading - should be ignored)
-GET http://localhost:3000/locus?sideloading=locusMembers
-Authorization: Bearer {{response.body.access_token}}
+Authorization: Bearer {{loginNormal.response.body.access_token}}
 
 ### Get /locus as Limited User (allowed regionIds)
 GET http://localhost:3000/locus
-Authorization: Bearer {{response.body.access_token}}
+Authorization: Bearer {{loginLimited.response.body.access_token}}
+
 
 ### Get /locus without token (Unauthorized)
 GET http://localhost:3000/locus
