@@ -5,6 +5,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    allowedHeaders: ['Authorization', 'Content-Type'],
+  });
+
   const config = new DocumentBuilder()
     .setTitle('Locus API')
     .setDescription('API for accessing locus data')

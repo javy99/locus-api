@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Locus } from './entities/locus.entity';
-import { GetLocusDto, SideLoadingOption } from './dto/getLocus.dto';
+import { GetLocusDto, RegionId, SideLoadingOption } from './dto/getLocus.dto';
 
 @Injectable()
 export class LocusService {
@@ -11,7 +11,7 @@ export class LocusService {
     private locusRepository: Repository<Locus>,
   ) {}
 
-  async getLocus(dto: GetLocusDto): Promise<Locus[]> {
+  async getLocus(dto: GetLocusDto, role: string): Promise<Locus[]> {
     const {
       id,
       assemblyId,
@@ -36,17 +36,25 @@ export class LocusService {
       queryBuilder.andWhere('rl.assemblyId = :assemblyId', { assemblyId });
     }
 
-    // Region ID and membership status needs to be joined with rnc_locus_members
-    if (regionId || membershipStatus) {
-      queryBuilder.leftJoinAndSelect('rl.locusMembers', 'rlm');
-      if (regionId) {
-        queryBuilder.andWhere('rlm.regionId = :regionId', { regionId });
-      }
+    console.log(role);
 
-      if (membershipStatus) {
-        queryBuilder.andWhere('rlm.membershipStatus = :membershipStatus', {
-          membershipStatus,
-        });
+    if (role === 'limited') {
+      queryBuilder.leftJoinAndSelect('rl.locusMembers', 'rlm');
+      queryBuilder.andWhere('rlm.regionId IN (:...regionIds)', {
+        regionIds: [RegionId.ID1, RegionId.ID2, RegionId.ID3],
+      });
+    } else {
+      if (regionId || membershipStatus) {
+        queryBuilder.leftJoinAndSelect('rl.locusMembers', 'rlm');
+        if (regionId) {
+          queryBuilder.andWhere('rlm.regionId = :regionId', { regionId });
+        }
+
+        if (membershipStatus) {
+          queryBuilder.andWhere('rlm.membershipStatus = :membershipStatus', {
+            membershipStatus,
+          });
+        }
       }
     }
 
@@ -55,8 +63,23 @@ export class LocusService {
     }
     queryBuilder.skip(skip);
     queryBuilder.take(rows);
-    if (sideloading === SideLoadingOption.LOCUS_MEMBERS) {
+
+    if (role !== 'normal' && sideloading === SideLoadingOption.LOCUS_MEMBERS) {
       queryBuilder.leftJoinAndSelect('rl.locusMembers', 'locusMembers');
+    }
+
+    if (role === 'normal') {
+      queryBuilder.select([
+        'rl.id',
+        'rl.assemblyId',
+        'rl.locusName',
+        'rl.publicLocusName',
+        'rl.chromosome',
+        'rl.strand',
+        'rl.locusStart',
+        'rl.locusStop',
+        'rl.memberCount',
+      ]);
     }
 
     const locus = await queryBuilder.getMany();

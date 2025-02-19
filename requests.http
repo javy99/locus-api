@@ -25,9 +25,25 @@ Content-Type: application/json
   "password": "limited"
 }
 
-
-@token = response.body.access_token
-### Get the /locus endpoint using the limited token
+### Get /locus as Admin (all data)
 GET http://localhost:3000/locus
-Authorization: Bearer {{token}}
+Authorization: Bearer {{response.body.access_token}}
 
+### Get /locus as Admin (with sideloading)
+GET http://localhost:3000/locus?sideloading=locusMembers
+Authorization: Bearer {{response.body.access_token}}
+
+### Get /locus as Normal User (limited columns)
+GET http://localhost:3000/locus
+Authorization: Bearer {{response.body.access_token}}
+
+### Get /locus as Normal User (with sideloading - should be ignored)
+GET http://localhost:3000/locus?sideloading=locusMembers
+Authorization: Bearer {{response.body.access_token}}
+
+### Get /locus as Limited User (allowed regionIds)
+GET http://localhost:3000/locus
+Authorization: Bearer {{response.body.access_token}}
+
+### Get /locus without token (Unauthorized)
+GET http://localhost:3000/locus

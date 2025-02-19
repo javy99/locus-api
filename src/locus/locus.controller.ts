@@ -1,15 +1,28 @@
-import { Controller, Get, Query, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Request,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { LocusService } from './locus.service';
-import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GetLocusDto, SideLoadingOption } from './dto/getLocus.dto';
 import { Locus } from './entities/locus.entity';
+import { Roles } from 'src/auth/roles.decorator';
+import { Role } from 'src/auth/role.enum';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @ApiTags('locus')
+@ApiBearerAuth()
 @Controller('locus')
+@UseGuards(RolesGuard)
 export class LocusController {
   constructor(private readonly locusService: LocusService) {}
 
   @Get()
+  @Roles(Role.ADMIN, Role.NORMAL, Role.LIMITED)
   @ApiQuery({
     name: 'id',
     required: false,
@@ -64,10 +77,11 @@ export class LocusController {
     enum: ['ASC', 'DESC'],
     description: 'Sorting order (ASC or DESC)',
   })
-  @ApiBody({ type: GetLocusDto, description: 'Filter options' })
   async getLocus(
     @Query(new ValidationPipe({ transform: true })) query: GetLocusDto,
+    @Request() req: { user: { role: Role } },
   ): Promise<Locus[]> {
-    return this.locusService.getLocus(query);
+    const user: { role: Role } = req.user;
+    return this.locusService.getLocus(query, user.role);
   }
 }
