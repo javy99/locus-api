@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Locus } from './entities/locus.entity';
 import { GetLocusDto, RegionId, SideLoadingOption } from './dto/getLocus.dto';
+import { LocusMember } from './entities/locusMember.entity';
 
 @Injectable()
 export class LocusService {
   constructor(
     @InjectRepository(Locus)
     private locusRepository: Repository<Locus>,
+    @InjectRepository(LocusMember)
+    private locusMemberRepository: Repository<LocusMember>,
   ) {}
 
   async getLocus(dto: GetLocusDto, role: string): Promise<Locus[]> {
@@ -24,6 +27,18 @@ export class LocusService {
       order = 'ASC',
     } = dto;
 
+    if (sideloading === SideLoadingOption.LOCUS_MEMBERS) {
+      if (role === 'normal') {
+        throw new ForbiddenException(
+          'Sideloading is not allowed for normal users.',
+        );
+      } else if (role === 'limited') {
+        throw new ForbiddenException(
+          'Sideloading is not allowed for limited users.',
+        );
+      }
+    }
+
     const skip = (page - 1) * rows;
 
     const queryBuilder = this.locusRepository.createQueryBuilder('rl');
@@ -36,25 +51,36 @@ export class LocusService {
       queryBuilder.andWhere('rl.assemblyId = :assemblyId', { assemblyId });
     }
 
-    console.log(role);
-
     if (role === 'limited') {
-      queryBuilder.leftJoinAndSelect('rl.locusMembers', 'rlm');
-      queryBuilder.andWhere('rlm.regionId IN (:...regionIds)', {
-        regionIds: [RegionId.ID1, RegionId.ID2, RegionId.ID3],
-      });
+      const subQuery = this.locusMemberRepository
+        .createQueryBuilder('rlm')
+        .select('rlm.locusId')
+        .where('rlm.regionId IN (:...regionIds)', {
+          regionIds: [RegionId.ID1, RegionId.ID2, RegionId.ID3],
+        });
+
+      queryBuilder.andWhere(`rl.id IN (${subQuery.getQuery()})`);
+      queryBuilder.setParameters(subQuery.getParameters());
     } else {
       if (regionId || membershipStatus) {
-        queryBuilder.leftJoinAndSelect('rl.locusMembers', 'rlm');
+        // Subquery to find locus IDs based on regionId and membershipStatus
+        const subQuery = this.locusMemberRepository
+          .createQueryBuilder('rlm')
+          .select('rlm.locusId')
+          .where('1=1'); // Dummy where clause
+
         if (regionId) {
-          queryBuilder.andWhere('rlm.regionId = :regionId', { regionId });
+          subQuery.andWhere('rlm.regionId = :regionId', { regionId });
         }
 
         if (membershipStatus) {
-          queryBuilder.andWhere('rlm.membershipStatus = :membershipStatus', {
+          subQuery.andWhere('rlm.membershipStatus = :membershipStatus', {
             membershipStatus,
           });
         }
+
+        queryBuilder.andWhere(`rl.id IN (${subQuery.getQuery()})`);
+        queryBuilder.setParameters(subQuery.getParameters());
       }
     }
 
@@ -83,6 +109,9 @@ export class LocusService {
     }
 
     const locus = await queryBuilder.getMany();
+    // console.log('Generated SQL:', queryBuilder.getSql());
+    // console.log('Parameters:', queryBuilder.getParameters());
+    // console.log('Retrieved Loci:', locus);
     return locus;
   }
 }

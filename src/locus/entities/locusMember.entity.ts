@@ -5,7 +5,7 @@ import { ApiProperty } from '@nestjs/swagger';
 @Entity({ name: 'rnc_locus_members' })
 export class LocusMember {
   @ApiProperty()
-  @PrimaryColumn({ name: 'locus_member_id' })
+  @PrimaryColumn({ name: 'id' })
   locusMemberId: number;
 
   @ApiProperty()
