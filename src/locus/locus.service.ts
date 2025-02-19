@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Locus } from './entities/locus.entity';
 import { GetLocusDto, RegionId, SideLoadingOption } from './dto/getLocus.dto';
 import { LocusMember } from './entities/locusMember.entity';
+import { Role } from 'src/auth/role.enum';
 
 @Injectable()
 export class LocusService {
@@ -14,7 +15,7 @@ export class LocusService {
     private locusMemberRepository: Repository<LocusMember>,
   ) {}
 
-  async getLocus(dto: GetLocusDto, role: string): Promise<Locus[]> {
+  async getLocus(dto: GetLocusDto, role: Role): Promise<Locus[]> {
     const {
       id,
       assemblyId,
@@ -28,11 +29,11 @@ export class LocusService {
     } = dto;
 
     if (sideloading === SideLoadingOption.LOCUS_MEMBERS) {
-      if (role === 'normal') {
+      if (role === Role.NORMAL) {
         throw new ForbiddenException(
           'Sideloading is not allowed for normal users.',
         );
-      } else if (role === 'limited') {
+      } else if (role === Role.LIMITED) {
         throw new ForbiddenException(
           'Sideloading is not allowed for limited users.',
         );
@@ -51,7 +52,7 @@ export class LocusService {
       queryBuilder.andWhere('rl.assemblyId = :assemblyId', { assemblyId });
     }
 
-    if (role === 'limited') {
+    if (role === Role.LIMITED) {
       const subQuery = this.locusMemberRepository
         .createQueryBuilder('rlm')
         .select('rlm.locusId')
@@ -90,11 +91,14 @@ export class LocusService {
     queryBuilder.skip(skip);
     queryBuilder.take(rows);
 
-    if (role !== 'normal' && sideloading === SideLoadingOption.LOCUS_MEMBERS) {
+    if (
+      role !== Role.NORMAL &&
+      sideloading === SideLoadingOption.LOCUS_MEMBERS
+    ) {
       queryBuilder.leftJoinAndSelect('rl.locusMembers', 'locusMembers');
     }
 
-    if (role === 'normal') {
+    if (role === Role.NORMAL) {
       queryBuilder.select([
         'rl.id',
         'rl.assemblyId',
