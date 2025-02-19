@@ -7,7 +7,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { LocusService } from './locus.service';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetLocusDto, SideLoadingOption } from './dto/getLocus.dto';
 import { Locus } from './entities/locus.entity';
 import { Roles } from '../auth/roles.decorator';
@@ -23,6 +23,7 @@ export class LocusController {
 
   @Get()
   @Roles(Role.ADMIN, Role.NORMAL, Role.LIMITED)
+  @ApiOperation({ summary: 'Get locus data' })
   @ApiQuery({
     name: 'id',
     required: false,
@@ -77,6 +78,13 @@ export class LocusController {
     enum: ['ASC', 'DESC'],
     description: 'Sorting order (ASC or DESC)',
   })
+  @ApiResponse({
+    status: 200,
+    description: 'Successful retrieval of locus data',
+    type: [Locus],
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getLocus(
     @Query(new ValidationPipe({ transform: true })) query: GetLocusDto,
     @Request() req: { user: { role: Role } },
