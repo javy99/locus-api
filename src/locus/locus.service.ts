@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Locus } from './entities/locus.entity';
 import { GetLocusDto, RegionId, SideLoadingOption } from './dto/getLocus.dto';
 import { LocusMember } from './entities/locusMember.entity';
-import { Role } from 'src/auth/role.enum';
+import { Role } from '../auth/role.enum';
 
 @Injectable()
 export class LocusService {

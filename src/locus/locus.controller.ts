@@ -10,9 +10,9 @@ import { LocusService } from './locus.service';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GetLocusDto, SideLoadingOption } from './dto/getLocus.dto';
 import { Locus } from './entities/locus.entity';
-import { Roles } from 'src/auth/roles.decorator';
-import { Role } from 'src/auth/role.enum';
-import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/role.enum';
+import { RolesGuard } from '../auth/roles.guard';
 
 @ApiTags('locus')
 @ApiBearerAuth()

@@ -22,7 +22,7 @@ export class GetLocusDto {
   @ApiProperty({ required: false, description: 'Filter by assembly ID' })
   @IsOptional()
   @IsString()
-  assemblyId?: number;
+  assemblyId?: string;
 
   @ApiProperty({ required: false, description: 'Filter by region ID' })
   @IsOptional()
